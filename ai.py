@@ -12,10 +12,17 @@ import random
 from aiDependancies.tile import Tile
 
 directionCoordinates = {
-	'N': ( 0, -1),
-	'S': ( 0,  1),
-	'W': (-1,  0),
-	'E': ( 1,  0)
+    'N': ( 0, -1),
+    'S': ( 0,  1),
+    'W': (-1,  0),
+    'E': ( 1,  0)
+}
+
+directionOpposites = {
+    'N': 'S',
+    'S': 'N',
+    'E': 'W',
+    'W': 'E'
 }
 
 class AI:
@@ -24,12 +31,15 @@ class AI:
         Called once before the sim starts. You may use this function
         to initialize any data or data structures you need.
         """
+        self.print = True
 
         self.turn = 0
         self.location = [0, 0]     # relative location of the agent, (x, y)
         self.memory = [[Tile()]]   # memory stored sideways relative to the world, (y, x)
         self.memoryOrigin = [0, 0] # coordinate of "top-left" tile in memory, (x, y)
         self.memorySize = [1, 1]   # bounds of memory, (x, y)
+
+        self.nextActions = []
 
     def update(self, percepts):
         """
@@ -60,16 +70,25 @@ class AI:
 
         for direction, tiles in percepts.items():
             if direction == 'X': continue
+
             for i in range(len(tiles)):
                 tileLocation = (
                     self.location[0] + (i+1)*directionCoordinates[direction][0],
                     self.location[1] + (i+1)*directionCoordinates[direction][1]
                 )
                 self.rememberTile(Tile(tileLocation[0], tileLocation[1], tiles[i]))
+            
+            if 'r' in tiles:
+                self.nextActions = [direction for tile in tiles]
+                self.nextActions[-1] = 'U'
 
         self.printMap()
-        print(self.location)
-        choice = random.choice(['N', 'S', 'E', 'W'])
+        if self.print: print(self.location)
+
+        if not self.nextActions:
+            self.nextActions = self.findClosestUnknown()
+
+        choice = self.nextActions.pop(0)
 
         self.move(directionCoordinates[choice])
 
@@ -95,8 +114,15 @@ class AI:
             self.memorySize[1] += 1
 
         self.memory[t.relativePosition[1] - self.memoryOrigin[1]][t.relativePosition[0] - self.memoryOrigin[0]] = t
+
+        for direction, offset in directionCoordinates.items():
+            neighbor = self.tileAt(t.relativePosition[0] + offset[0], t.relativePosition[1] + offset[1])
+            if neighbor:
+                if directionOpposites[direction] in neighbor.unknowns: neighbor.unknowns.remove(directionOpposites[direction])
+                if direction in t.unknowns: t.unknowns.remove(direction)
     
     def tileAt(self, x, y):
+        if not (x in range(self.memoryOrigin[0], self.memoryOrigin[0]+self.memorySize[0]) and y in range(self.memoryOrigin[1], self.memoryOrigin[1]+self.memorySize[1])): return None
         return self.memory[y-self.memoryOrigin[1]][x-self.memoryOrigin[0]]
     
     def move(self, amount):
@@ -106,9 +132,25 @@ class AI:
                 self.location[0] += amount[0]
                 self.location[1] += amount[1]
     
+    # TODO use coords instead of tile objects
+    def findClosestUnknown(self):
+        tilesChecked = []
+        tileFrontier = [([], self.tileAt(self.location[0], self.location[1]))]
+        while tileFrontier:
+            currentPath, currentTile = tileFrontier.pop(0)
+            if currentTile.unknowns: return currentPath
+
+            neighbors = [(list(''.join(currentPath) + direction), self.tileAt(currentTile.relativePosition[0] + offset[0], currentTile.relativePosition[1] + offset[1])) for direction, offset in sorted(directionCoordinates.items(), key=lambda e: random.random())]
+            
+            frontierAdditions = list(filter(lambda t: t[1] and t[1].type != 'w' and t[1].relativePosition not in tilesChecked, neighbors))
+            tileFrontier.extend(frontierAdditions)
+            tilesChecked.extend([addition[1].relativePosition for addition in frontierAdditions])
+        return random.choice(['N', 'S', 'E', 'W'])
+
     def printMap(self):
-        print("    | " + ' '.join([f"{i+self.memoryOrigin[0]:4}" for i in range(self.memorySize[0])]))
-        print("----+-" + 5*self.memorySize[0]*'-')
-        print('\n'.join([f"{i+self.memoryOrigin[1]:3d} | " +' '.join([f"{str(tile):>4}" for tile in self.memory[i]]) for i in range(self.memorySize[1])]))
-        print("----+-" + 5*self.memorySize[0]*'-')
-        print()
+        if self.print: 
+            print("    | " + ' '.join([f"{i+self.memoryOrigin[0]:4}" for i in range(self.memorySize[0])]))
+            print("----+-" + 5*self.memorySize[0]*'-')
+            print('\n'.join([f"{i+self.memoryOrigin[1]:3d} | " +' '.join([f"{str(tile):>4}" for tile in self.memory[i]]) for i in range(self.memorySize[1])]))
+            print("----+-" + 5*self.memorySize[0]*'-')
+            print()

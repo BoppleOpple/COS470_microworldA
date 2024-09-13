@@ -67,12 +67,13 @@ Help:
 
         for i in range(batches):
             turn_counts.append(sim.run_sim(the_world, max_turns, log, use_display, display_speed))
+            print(f"Batch {i+1} complete after {turn_counts[-1]} turns")
     except misc.InvalidCellException as e:
         print(e)
     finally:
         if log is not None:
             log.close()
-        print(f"Mean turn count: {sum(turn_counts)/batches:.2}")
+        print(f"Mean turn count: {sum(turn_counts)/batches:.2f}")
 
 
 
