@@ -201,6 +201,8 @@ def run_sim(
     if use_display:
         disp.quit()
 
+    return turn-1
+
 def get_percepts(the_world, agent_x, agent_y, agent_facing):
     # percepts = the_world.get_cells_around(agent_x, agent_y)
     percepts = {'X':[the_world.get_cell(agent_x, agent_y)]}
