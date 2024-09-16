@@ -94,7 +94,7 @@ Help:
         print(f"Mean turn count: {sum(turn_counts)/batches:.2f}")
 
         plt.hist(turn_counts, bins=30)
-        plt.show()
+        plt.savefig('out/histogram.pdf')
 
 
 
