@@ -1,3 +1,9 @@
+tileCharacters = {
+	'g': ' ',
+	'w': 'xxxx',
+	'r': ' :D '
+}
+
 class Tile:
 	def __init__(self, x=0, y=0, cellType='g'):
 		self.relativePosition = (x, y)
@@ -5,4 +11,5 @@ class Tile:
 		self.unknowns = ['N', 'S', 'E', 'W']
 	
 	def __str__(self):
-		return self.type
+		if self.type not in tileCharacters.keys(): return str(self.type)
+		return tileCharacters[self.type]

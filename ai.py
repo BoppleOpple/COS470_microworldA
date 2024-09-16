@@ -31,7 +31,7 @@ class AI:
         Called once before the sim starts. You may use this function
         to initialize any data or data structures you need.
         """
-        self.print = True
+        self.print = False
 
         self.turn = 0
         self.location = [0, 0]     # relative location of the agent, (x, y)
@@ -151,6 +151,6 @@ class AI:
         if self.print: 
             print("    | " + ' '.join([f"{i+self.memoryOrigin[0]:4}" for i in range(self.memorySize[0])]))
             print("----+-" + 5*self.memorySize[0]*'-')
-            print('\n'.join([f"{i+self.memoryOrigin[1]:3d} | " +' '.join([f"{str(tile):>4}" for tile in self.memory[i]]) for i in range(self.memorySize[1])]))
+            print('\n'.join([f"{i+self.memoryOrigin[1]:3d} | " +' '.join([f"{str(tile) if tile else "  ? ":>4}" for tile in self.memory[i]]) for i in range(self.memorySize[1])]))
             print("----+-" + 5*self.memorySize[0]*'-')
             print()
