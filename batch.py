@@ -3,6 +3,7 @@ import world
 import misc
 import sim
 import concurrent.futures
+import matplotlib.pyplot as plt
 
 def main():
 
@@ -75,7 +76,7 @@ Help:
             display_list = [use_display   for i in range(batches)]
             speed_list   = [display_speed for i in range(batches)]
             index_list   = range(batches)
-            turn_counts = executor.map(sim.run_sim, world_list, turn_list, log_list, display_list, speed_list, index_list)
+            turn_counts = list(executor.map(sim.run_sim, world_list, turn_list, log_list, display_list, speed_list, index_list))
         # for i in range(batches):
         #     turn_counts.append(sim.run_sim(the_world, max_turns, log, use_display, display_speed))
         #     print(f"Batch {i+1} complete after {turn_counts[-1]} turns")
@@ -84,7 +85,16 @@ Help:
     finally:
         if log is not None:
             log.close()
+        turn_counts.sort()
+        print(f"Min turn count: {turn_counts[0]}")
+        print(f"Q1 turn count: {turn_counts[batches // 4]}")
+        print(f"Median turn count: {turn_counts[batches // 2]}")
+        print(f"Q3 turn count: {turn_counts[3*(batches // 4)]}")
+        print(f"Max turn count: {turn_counts[-1]}")
         print(f"Mean turn count: {sum(turn_counts)/batches:.2f}")
+
+        plt.hist(turn_counts, bins=30)
+        plt.show()
 
 
 
