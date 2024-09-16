@@ -26,8 +26,15 @@ def run_sim(
     max_turns=None, 
     log=None, 
     use_display=False,
-    display_speed=0.5
+    display_speed=0.5,
+    index=-1 # added for threading
 ):
+    # added for threading
+    if index >= 0:
+        start_time = time.localtime()
+        start_ns = time.time()
+        print(f"{start_time.tm_wday:02}-{start_time.tm_mon:02}-{start_time.tm_year:04} {start_time.tm_hour:02}:{start_time.tm_min:02}:{start_time.tm_sec+start_ns-int(start_ns):02.6f} | simulation {index} started")
+    #
 
     the_ai = ai.AI()
 
@@ -199,7 +206,17 @@ def run_sim(
     )
 
     if use_display:
+        time.sleep(3)
         disp.quit()
+
+    # added for threading
+    if index >= 0:
+        end_time = time.localtime()
+        end_ns = time.time()
+        print(f"{end_time.tm_wday:02}-{end_time.tm_mon:02}-{end_time.tm_year:04} {end_time.tm_hour:02}:{end_time.tm_min:02}:{end_time.tm_sec+end_ns-int(end_ns):02.6f} | simulation {index} ended:")
+        print(f"{end_time.tm_wday:02}-{end_time.tm_mon:02}-{end_time.tm_year:04} {end_time.tm_hour:02}:{end_time.tm_min:02}:{end_time.tm_sec+end_ns-int(end_ns):02.6f} |     turns: {turn-1}")
+        print(f"{end_time.tm_wday:02}-{end_time.tm_mon:02}-{end_time.tm_year:04} {end_time.tm_hour:02}:{end_time.tm_min:02}:{end_time.tm_sec+end_ns-int(end_ns):02.6f} |     runtime: {end_ns-start_ns:02.6f} s")
+    #
 
     return turn-1
 

@@ -2,6 +2,7 @@ import sys
 import world
 import misc
 import sim
+import concurrent.futures
 
 def main():
 
@@ -24,9 +25,11 @@ def main():
     if "-h" in args:
         print("""
 Help:
--w <FILE_PATH>  | runs sim using the specified world file
--l <FILE_PATH>  | runs sim and prints log to file
--d <FRAME_TIME> | displays and updates sim every FRAME_TIME seconds
+-w <FILE_PATH>   | runs sim using the specified world file
+-l <FILE_PATH>   | runs sim and prints log to file
+-d <FRAME_TIME>  | displays and updates sim every FRAME_TIME seconds
+-t <TURN_COUNT>  | only runs sim for a maximum of TURN_COUNT steps
+-b <NUM_BATCHES> | runs NUM_BATCHES simulations in parallel and prints stats
 """)
 
     i = 1
@@ -65,9 +68,17 @@ Help:
         the_world = world.World(world_filename)
         the_world.load_world()
 
-        for i in range(batches):
-            turn_counts.append(sim.run_sim(the_world, max_turns, log, use_display, display_speed))
-            print(f"Batch {i+1} complete after {turn_counts[-1]} turns")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=batches) as executor:
+            world_list   = [the_world     for i in range(batches)]
+            turn_list    = [max_turns     for i in range(batches)]
+            log_list     = [log           for i in range(batches)]
+            display_list = [use_display   for i in range(batches)]
+            speed_list   = [display_speed for i in range(batches)]
+            index_list   = range(batches)
+            turn_counts = executor.map(sim.run_sim, world_list, turn_list, log_list, display_list, speed_list, index_list)
+        # for i in range(batches):
+        #     turn_counts.append(sim.run_sim(the_world, max_turns, log, use_display, display_speed))
+        #     print(f"Batch {i+1} complete after {turn_counts[-1]} turns")
     except misc.InvalidCellException as e:
         print(e)
     finally:
