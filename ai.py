@@ -217,7 +217,7 @@ class AI:
             for direction, offset in sorted(directionCoordinates.items(), key=lambda e: random.random()):
                 # add the neighbor in that direction, alongside the updated path to it
                 # this neighbor will always be known, since the function would have already returned otherwise
-                neighbors.push([
+                neighbors.append([
                     currentPath + [direction],
                     self.tileAt(currentTile.relativePosition[0] + offset[0], currentTile.relativePosition[1] + offset[1])
                 ])
